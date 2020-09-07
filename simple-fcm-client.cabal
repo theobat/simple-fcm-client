@@ -1,0 +1,72 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 1331f1a87f0b87e5e690f089dd2c522b53e88771b8f5bec73265d40e3cd4816c
+
+name:           simple-fcm-client
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/simple-fcm-client#readme>
+homepage:       https://github.com/githubuser/simple-fcm-client#readme
+bug-reports:    https://github.com/githubuser/simple-fcm-client/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2020 Author name here
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/simple-fcm-client
+
+library
+  exposed-modules:
+      SimpleFCM
+      SimpleFCM.FCMV1
+      SimpleFCM.TokenContainer
+  other-modules:
+      Paths_simple_fcm_client
+  hs-source-dirs:
+      src
+  build-depends:
+      aeson
+    , base >=4.7 && <5
+    , bytestring
+    , google-oauth2-jwt
+    , http-types
+    , lens
+    , protolude
+    , stm
+    , text
+    , unordered-containers
+    , wreq
+  default-language: Haskell2010
+
+test-suite simple-fcm-client-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_simple_fcm_client
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson
+    , base >=4.7 && <5
+    , bytestring
+    , google-oauth2-jwt
+    , http-types
+    , lens
+    , protolude
+    , simple-fcm-client
+    , stm
+    , text
+    , unordered-containers
+    , wreq
+  default-language: Haskell2010
