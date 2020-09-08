@@ -22,6 +22,10 @@ type Email = Text
 
 newtype GoogleAccessToken = GoogleAccessToken Text
   deriving newtype (Eq, Show, FromJSON)
+
+asBearer :: GoogleAccessToken -> ByteString
+asBearer (GoogleAccessToken value) = "Bearer " <> encodeUtf8 value
+
 newtype GoogleMainToken = GoogleMainToken SignedJWT
   deriving newtype (Eq, Show)
 instance ToJSON GoogleMainToken where
