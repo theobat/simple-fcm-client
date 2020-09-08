@@ -39,9 +39,10 @@ fcmScope = ["https://www.googleapis.com/auth/firebase.messaging", "https://www.g
 expirationInSeconds :: Maybe Int
 expirationInSeconds = Just 3600
 
--- | 
--- >>> fromString "project-123" :: ProjectId
--- "project-123"
+-- | This is the project id, for some reason, it's not working when using the 
+-- project-123 format, use the numbers only.
+-- >>> fromString "1000002040020" :: ProjectId
+-- "1000002040020"
 newtype ProjectId = ProjectId Text
   deriving newtype (Eq, Show)
 
