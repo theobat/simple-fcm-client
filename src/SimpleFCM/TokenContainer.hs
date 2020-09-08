@@ -16,6 +16,7 @@ import qualified Network.Wreq as NW
 import Data.Aeson (decode', FromJSON, ToJSON(toJSON))
 import Control.Lens ( (&), (^.), (.~) )
 import Data.Text (pack)
+import Data.String (String, IsString(fromString))
 
 type Email = Text
 
@@ -34,9 +35,16 @@ fcmScope = ["https://www.googleapis.com/auth/firebase.messaging", "https://www.g
 expirationInSeconds :: Maybe Int
 expirationInSeconds = Just 3600
 
+newtype ProjectId = ProjectId Text
+  deriving newtype (Eq, Show)
+
+instance IsString ProjectId where
+  fromString = ProjectId . pack  
+
 data TokenSettings = TokenSettings {
     serviceClientEmail :: Email,
-    rawPrivateKey :: String
+    rawPrivateKey :: String,
+    projectId :: ProjectId
   }
   deriving (Eq, Show)
 
