@@ -26,9 +26,9 @@ data FCMNotification = FCMNotification
 
 data FCMMessage = FCMMessage
   { notification :: FCMNotification,
-    payload :: Maybe DA.Object,
-    topic :: Maybe Text,
-    token :: Maybe Text
+    -- payload :: Maybe DA.Object,
+    topic :: Maybe Text
+    -- token :: Maybe Text
   } deriving (Show, Eq, Generic)
 
 simpleMessage :: Text -> Text -> Text -> FCMMessage
@@ -37,9 +37,9 @@ simpleMessage topicV titleV bodyV = FCMMessage {
       title = titleV,
       body = bodyV
     },
-    payload = Nothing,
-    topic = Just topicV,
-    token = Nothing
+    -- payload = Nothing,
+    topic = Just topicV
+    -- token = Nothing
   }
 
 replaceData :: String -> String
@@ -59,24 +59,27 @@ instance DA.ToJSON FCMMessage where
 -- >>> messageURL (TokenSettings "" "" "project-123")
 -- "https://fcm.googleapis.com/v1/projects/project-123/messages:send"
 messageURL :: TokenSettings -> String
-messageURL settings = base <> (projectIdToURLPart . projectId $ settings) <> suffix
+messageURL settings = base <> variable <> suffix
   where
     base = "https://fcm.googleapis.com/v1/projects/"
+    variable = projectIdToURLPart . projectId $ settings
     suffix = "/messages:send"
 
-sendMessage :: GoogleTokenContainer containerT => containerT -> TokenSettings -> FCMMessage -> IO (Either NW.Status NW.Status)
+sendMessage :: GoogleTokenContainer containerT => containerT -> TokenSettings -> FCMMessage -> IO (Either Text NW.Status)
 sendMessage tokenCont settings fcmMsg = do
   let token = getGoogleAccessToken tokenCont
   sendMessageWithAccessToken token settings fcmMsg
 
 data Msg a = Msg { message :: a} deriving (Eq, Show, Generic, ToJSON)
 
-sendMessageWithAccessToken :: GoogleAccessToken -> TokenSettings -> FCMMessage -> IO (Either NW.Status NW.Status)
+sendMessageWithAccessToken :: GoogleAccessToken -> TokenSettings -> FCMMessage -> IO (Either Text NW.Status)
 sendMessageWithAccessToken token settings fcmMsg = do
   let authHeader = asBearer token
+  print authHeader
   let opts = NW.defaults & NW.header "Authorization" .~ [authHeader]
-      msgVal=DA.toJSON $ Msg fcmMsg
+  let msgVal = DA.toJSON $ Msg fcmMsg
+  print msgVal
   resp <- NW.postWith opts (messageURL settings) msgVal
-  putStrLn ("Resp:" <> show resp::Text)
+  -- putStrLn ("Resp:" <> show resp::Text)
   let respStatus = resp ^. NW.responseStatus
-  pure $ (if statusIsSuccessful respStatus then Right else Left) respStatus
+  pure $ (if statusIsSuccessful respStatus then Right respStatus else Left (show resp)) 

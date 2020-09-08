@@ -2,8 +2,9 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
 import Protolude
-import SimpleFCM.FCMV1 (sendMessage, simpleMessage)
+import SimpleFCM.FCMV1 (sendMessageWithAccessToken, sendMessage, simpleMessage)
 import SimpleFCM.TokenContainer (generateBothToken, tokenUpdaterThread, GoogleTokenContainer(..), GoogleAccessToken, GoogleMainToken, TokenSettings (TokenSettings), getFCMAccessToken, getToken)
+import Data.String (String)
 
 data TestTokenContainer = TestTokenContainer {
       mainToken :: GoogleMainToken,
@@ -16,21 +17,27 @@ instance GoogleTokenContainer TestTokenContainer where
   setGoogleAccessToken a b = b{accessToken = a}
   getGoogleAccessToken = accessToken
 
+privateKey :: String
+privateKey = ""
+
 defaultSettings :: TokenSettings
-defaultSettings = undefined -- TokenSettings "your-email" "your-private-key"
+defaultSettings = TokenSettings "" privateKey ""
 
 main :: IO ()
 main = do
-  res <- runExceptT $ generateBothToken defaultSettings
-  tokenCont <- case (uncurry TestTokenContainer) <$> res of
-    Left err -> panic err
-    Right r -> newMVar r
-  tokenUpdaterThread (Just $ 1000000 * 3) defaultSettings tokenCont
-  printPeriodicValue tokenCont
-  pure ()
-  where
-    printPeriodicValue tokenCont = do
-      res <- readMVar tokenCont
-      putLText $ "Read mvar = " <> show res
-      threadDelay (1000000 * 1)
-      printPeriodicValue tokenCont
+  print =<< (runExceptT $ do
+    (_, access_token) <- generateBothToken defaultSettings
+    liftIO $ sendMessageWithAccessToken (access_token) defaultSettings (simpleMessage "allUsers" "ok" "ok"))
+
+  -- tokenCont <- case (uncurry TestTokenContainer) <$> res of
+  --   Left err -> panic err
+  --   Right r -> newMVar r
+  -- tokenUpdaterThread (Just $ 1000000 * 3) defaultSettings tokenCont
+  -- printPeriodicValue tokenCont
+  -- pure ()
+  -- where
+  --   printPeriodicValue tokenCont = do
+  --     res <- readMVar tokenCont
+  --     putLText $ "Read mvar = " <> show res
+  --     threadDelay (1000000 * 1)
+  --     printPeriodicValue tokenCont

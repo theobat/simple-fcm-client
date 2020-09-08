@@ -85,7 +85,6 @@ getFCMAccessToken signedJWT = do
   let opts = NW.defaults
   let msgVal=toJSON $ accessTokenInput
   resp <- NW.postWith opts "https://oauth2.googleapis.com/token" msgVal
-  putStrLn ("Resp:" <> show resp::Text)
   let respStatus = resp ^. NW.responseStatus
   let respBody = resp ^. NW.responseBody
   let bodyRes = decode' @GoogleAccessTokenReturn respBody
