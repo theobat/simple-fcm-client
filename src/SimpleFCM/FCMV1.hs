@@ -17,7 +17,7 @@ import Network.Google.OAuth2.JWT (SignedJWT, fromPEMString, getSignedJWT)
 import Data.Text (pack)
 import Data.HashMap.Strict (fromList)
 import Data.Aeson (ToJSON(toJSON))
-import SimpleFCM.TokenContainer (TokenSettings(projectId), getGoogleAccessToken, GoogleTokenContainer)
+import SimpleFCM.TokenContainer (projectIdToURLPart, TokenSettings(projectId), getGoogleAccessToken, GoogleTokenContainer)
 
 data FCMNotification = FCMNotification
   { title :: Text
@@ -55,6 +55,15 @@ instance DA.ToJSON FCMMessage where
     toJSON     = DA.genericToJSON customOptions
     toEncoding = DA.genericToEncoding customOptions
 
+-- >>> import SimpleFCM.TokenContainer (TokenSettings(TokenSettings)) 
+-- >>> messageURL (TokenSettings "" "" "project-123")
+-- "https://fcm.googleapis.com/v1/projects/project-123/messages:send"
+messageURL :: TokenSettings -> String
+messageURL settings = base <> (projectIdToURLPart . projectId $ settings) <> suffix
+  where
+    base = "https://fcm.googleapis.com/v1/projects/"
+    suffix = "/messages:send"
+
 sendMessage :: GoogleTokenContainer containerT => containerT -> TokenSettings -> FCMMessage -> IO (Either NW.Status NW.Status)
 sendMessage tokenCont settings fcmMsg = do
   let token = show $ getGoogleAccessToken tokenCont
@@ -62,9 +71,10 @@ sendMessage tokenCont settings fcmMsg = do
   print authHeader
   let opts = NW.defaults & NW.header "Authorization" .~ [encodeUtf8 authHeader]
       msgVal=DA.toJSON $ Msg fcmMsg
-  resp <- NW.postWith opts ("https://fcm.googleapis.com/v1/projects/" <> (show . projectId $ settings) <> "/messages:send") msgVal
+  resp <- NW.postWith opts (messageURL settings) msgVal
   putStrLn ("Resp:" <> show resp::Text)
   let respStatus = resp ^. NW.responseStatus
   pure $ (if statusIsSuccessful respStatus then Right else Left) respStatus
 
 data Msg a = Msg { message :: a} deriving (Eq, Show, Generic, ToJSON)
+
