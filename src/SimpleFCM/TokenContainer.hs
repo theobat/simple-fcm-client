@@ -105,17 +105,15 @@ tokenUpdaterThread delay settings input = const () <$> (forkIO $ tokenTimer dela
 
 tokenTimer :: GoogleTokenContainer containerT => Maybe Int -> TokenSettings -> MVar containerT -> IO ()
 tokenTimer delay settings input = do
-  -- print "tik"
   threadDelay (fromMaybe (1000000 * 60 * 55) delay)
-  -- print "tok"
   modifyMVar_ input updater
   tokenTimer delay settings input
   where
     updater !prevContainer = do
       setRes <- runExceptT $ generateBothToken settings
-      -- print "modified MVAR"
+      print "modified Google Tokens"
       case setRes of
-        Left err -> print err >> pure prevContainer
+        Left err -> print "|FCM Token ERROR|" >> print err >> pure prevContainer
         Right !(mainToken, accessToken) -> pure (setGoogleMainToken mainToken . setGoogleAccessToken accessToken $ prevContainer)
       
 generateBothToken :: TokenSettings -> ExceptT Text IO (GoogleMainToken, GoogleAccessToken)
