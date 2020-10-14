@@ -5,16 +5,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
+-- |
+-- Module      : SimpleFCM.FCMV1
+-- Description : This module implements the specification described in
+-- <https://firebase.google.com/docs/cloud-messaging/http-server-ref the firebase documentation >
 module SimpleFCM.FCMV1 where
 
 import Control.Lens ((&), (.~), (^.))
-import Data.Aeson (Object, ToJSON (toJSON))
+import Data.Aeson (ToJSON (toJSON))
 import qualified Data.Aeson as DA
-import qualified Data.Aeson.Types as DA
-import Data.HashMap.Strict (fromList)
-import Data.String (IsString (fromString), String)
-import Data.Text (pack)
-import Network.Google.OAuth2.JWT (SignedJWT, fromPEMString, getSignedJWT)
+import Data.String (String)
 import Network.HTTP.Types.Status (statusIsSuccessful)
 import qualified Network.Wreq as NW
 import Protolude hiding ((&))
@@ -47,10 +47,11 @@ simpleNotification ::
   -- | Notification's body
   Text ->
   FCMNotification
-simpleNotification titleV bodyV = FCMNotification {
-    title=titleV,
-    body=bodyV
-  }
+simpleNotification titleV bodyV =
+  FCMNotification
+    { title = titleV,
+      body = bodyV
+    }
 
 -- | A message with a title, a body and a topic to broadcast to.
 simpleMessage ::
