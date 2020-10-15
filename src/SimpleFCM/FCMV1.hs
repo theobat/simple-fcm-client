@@ -32,12 +32,42 @@ data FCMNotification = FCMNotification
     body :: Text
   }
   deriving (Show, Eq, Generic, ToJSON)
+----------- Android/Firebase
+data AndroidPriority = NORMAL | HIGH deriving (Show, Eq, Generic, ToJSON)
+
+data AndroidOption = AndroidOption {
+  priority :: Maybe AndroidPriority,
+  ttl :: Maybe Text
+} deriving (Show, Eq, Generic, ToJSON)
+defaultAndroidOption :: AndroidOption
+defaultAndroidOption = AndroidOption {
+  priority = Nothing,
+  ttl = Nothing
+}
+----------- IOS/APNS
+-- | Limited between 0 to 10.
+data ApnsPriority = ApnsPriority Int deriving (Show, Eq, Generic, ToJSON)
+data ApnsHeaders = ApnsHeaders {
+  apnsPriority :: Maybe ApnsPriority
+} deriving (Show, Eq, Generic, ToJSON)
+defaultApnsHeaders :: ApnsHeaders
+defaultApnsHeaders = ApnsHeaders {
+  apnsPriority = Nothing
+}
+data ApnsOption = ApnsOption {
+  headers :: Maybe ApnsHeaders
+} deriving (Show, Eq, Generic, ToJSON)
+defaultApnsOption :: ApnsOption
+defaultApnsOption = ApnsOption {
+  headers = Nothing
+}
 
 data FCMMessage = FCMMessage
   { notification :: Maybe FCMNotification,
     payload :: Maybe DA.Object,
-    topic :: Maybe Text
-    -- token :: Maybe Text
+    topic :: Maybe Text,
+    android :: Maybe AndroidOption,
+    apns :: Maybe ApnsOption
   }
   deriving (Show, Eq, Generic)
 
@@ -66,8 +96,31 @@ simpleMessage topicV titleV bodyV =
   FCMMessage
     { notification = Just $ simpleNotification titleV bodyV,
       payload = Nothing,
-      topic = Just topicV
+      topic = Just topicV,
+      android = Nothing,
+      apns = Nothing
     }
+
+-- | Basically sets the importance of your message for both android and IOS.
+-- The importance has an impact on your message delivery's swiftness. 
+-- See the importance of a message in FCM:
+-- <https://firebase.google.com/docs/cloud-messaging/concept-options#setting-the-priority-of-a-message here>
+setImportance :: AndroidPriority -> ApnsPriority -> FCMMessage -> FCMMessage
+setImportance androidVal apnsVal input = input {
+      android = case android input of
+        Just a -> Just a{ priority = Just androidVal}
+        Nothing -> Just defaultAndroidOption{ priority = Just androidVal }
+      ,
+      apns = case apns input of
+        Just a -> Just a{ headers = Just defaultApnsHeaders{ apnsPriority = Just apnsVal}}
+        Nothing -> Just defaultApnsOption{ headers = Just defaultApnsHeaders{ apnsPriority = Just apnsVal}}
+  }
+
+-- | Same as 'setImportance' but through a simplified binary notion (which happen to be the android one)
+-- basically sets the APNS importance to 10 if the given android one is at HIGH, and to 5 otherwise.
+setImportanceSimple :: AndroidPriority -> FCMMessage -> FCMMessage
+setImportanceSimple HIGH input  = setImportance HIGH (ApnsPriority 10) input
+setImportanceSimple NORMAL input  = setImportance NORMAL (ApnsPriority 5) input
 
 -- | Like a 'simpleMessage' but with an additional JSON payload.
 -- In google's FCM spec, the key is _data_, but it's a reserved word in
@@ -89,11 +142,19 @@ payloadMessage topicV notification payloadV =
       payload = case toJSON <$> payloadV of
         Just (DA.Object obj) -> Just obj
         _ -> Nothing,
-      topic = Just topicV
+      topic = Just topicV,
+      android = Nothing,
+      apns = Nothing
     }
 
+-- | Replaces haskell keywords or haskell's incorrect syntax for 
+-- JSON messages.
+-- Example:
+-- - @"payload"@ is used instead of @"data"@ (and subsequently replaced here for sending the JSON)
+-- because data is a protected keyword in haskell. 
 replaceData :: String -> String
 replaceData "payload" = "data"
+replaceData "apnsPriority" = "apns-priority"
 replaceData a = a
 
 customOptions :: DA.Options
