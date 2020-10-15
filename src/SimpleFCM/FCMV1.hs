@@ -4,6 +4,7 @@
 {-# LANGUAGE GeneralisedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE TypeApplications #-}
 
 -- |
 -- Module      : SimpleFCM.FCMV1
@@ -46,7 +47,10 @@ defaultAndroidOption = AndroidOption {
 }
 ----------- IOS/APNS
 -- | Limited between 0 to 10.
-data ApnsPriority = ApnsPriority Int deriving (Show, Eq, Generic, ToJSON)
+data ApnsPriority = ApnsPriority Int deriving (Show, Eq, Generic)
+instance ToJSON ApnsPriority where
+  toJSON (ApnsPriority v) = toJSON @Text . show $ v
+
 data ApnsHeaders = ApnsHeaders {
   apnsPriority :: Maybe ApnsPriority
 } deriving (Show, Eq, Generic)
@@ -54,7 +58,8 @@ instance ToJSON ApnsHeaders where
   toJSON = DA.genericToJSON apnsJSONOption
   toEncoding = DA.genericToEncoding apnsJSONOption
 apnsJSONOption = DA.defaultOptions
-    { DA.fieldLabelModifier = replaceApnsHeader
+    { DA.fieldLabelModifier = replaceApnsHeader,
+      DA.omitNothingFields = True
     }
 defaultApnsHeaders :: ApnsHeaders
 defaultApnsHeaders = ApnsHeaders {
