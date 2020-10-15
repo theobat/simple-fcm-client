@@ -54,7 +54,7 @@ instance ToJSON ApnsHeaders where
   toJSON = DA.genericToJSON apnsJSONOption
   toEncoding = DA.genericToEncoding apnsJSONOption
 apnsJSONOption = DA.defaultOptions
-    { DA.fieldLabelModifier = replaceData
+    { DA.fieldLabelModifier = replaceApnsHeader
     }
 defaultApnsHeaders :: ApnsHeaders
 defaultApnsHeaders = ApnsHeaders {
