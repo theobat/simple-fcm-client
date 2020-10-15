@@ -49,7 +49,13 @@ defaultAndroidOption = AndroidOption {
 data ApnsPriority = ApnsPriority Int deriving (Show, Eq, Generic, ToJSON)
 data ApnsHeaders = ApnsHeaders {
   apnsPriority :: Maybe ApnsPriority
-} deriving (Show, Eq, Generic, ToJSON)
+} deriving (Show, Eq, Generic)
+instance ToJSON ApnsHeaders where
+  toJSON = DA.genericToJSON apnsJSONOption
+  toEncoding = DA.genericToEncoding apnsJSONOption
+apnsJSONOption = DA.defaultOptions
+    { DA.fieldLabelModifier = replaceData
+    }
 defaultApnsHeaders :: ApnsHeaders
 defaultApnsHeaders = ApnsHeaders {
   apnsPriority = Nothing
@@ -154,8 +160,11 @@ payloadMessage topicV notification payloadV =
 -- because data is a protected keyword in haskell. 
 replaceData :: String -> String
 replaceData "payload" = "data"
-replaceData "apnsPriority" = "apns-priority"
 replaceData a = a
+
+replaceApnsHeader :: String -> String
+replaceApnsHeader "apnsPriority" = "apns-priority"
+replaceApnsHeader a = a  
 
 customOptions :: DA.Options
 customOptions =
