@@ -3,7 +3,7 @@
 
 import Protolude
 import SimpleFCM.FCMV1 (sendMessageWithAccessToken, sendMessage, simpleMessage)
-import SimpleFCM.TokenContainer (generateBothToken, tokenUpdaterThread, GoogleTokenContainer(..), GoogleAccessToken, GoogleMainToken, TokenSettings (TokenSettings), getFCMAccessToken, getToken)
+import SimpleFCM.TokenContainer (tokenTimer, generateBothToken, tokenUpdaterThread, GoogleTokenContainer(..), GoogleAccessToken, GoogleMainToken, TokenSettings (TokenSettings), getFCMAccessToken, getToken)
 import Data.String (String)
 
 data TestTokenContainer = TestTokenContainer {
@@ -24,10 +24,11 @@ defaultSettings :: TokenSettings
 defaultSettings = TokenSettings "" privateKey ""
 
 main :: IO ()
-main = do
-  print =<< (runExceptT $ do
-    (_, access_token) <- generateBothToken defaultSettings
-    liftIO $ sendMessageWithAccessToken (access_token) defaultSettings (simpleMessage "allUsers" "ok" "ok"))
+main = 
+  tokenTimer (Just 10000000) defaultSettings (undefined :: MVar TestTokenContainer)
+  -- print =<< (runExceptT $ do
+  --   (_, access_token) <- generateBothToken defaultSettings
+  --   liftIO $ sendMessageWithAccessToken (access_token) defaultSettings (simpleMessage "allUsers" "ok" "ok"))
 
   -- tokenCont <- case (uncurry TestTokenContainer) <$> res of
   --   Left err -> panic err

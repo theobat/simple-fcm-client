@@ -107,22 +107,26 @@ class GoogleTokenContainer containerT where
 tokenUpdaterThread :: GoogleTokenContainer containerT => Maybe Int -> TokenSettings -> MVar containerT -> IO ()
 tokenUpdaterThread delay settings input = const () <$> (forkIO $ tokenTimer delay settings input)
 
+{-# INLINABLE tokenTimer #-}
 tokenTimer :: GoogleTokenContainer containerT => Maybe Int -> TokenSettings -> MVar containerT -> IO ()
-tokenTimer delay settings input = do
+tokenTimer !delay !settings input = forever (do
   threadDelay (fromMaybe (1000000 * 60 * 55) delay)
   modifyMVar_ input updater
-  tokenTimer delay settings input
+  print "modified Google Tokens"
+  )
   where
+    {-# INLINE updater #-}
     updater !prevContainer = do
       setRes <- runExceptT $ generateBothToken settings
-      print "modified Google Tokens"
       case setRes of
         Left err -> print "|FCM Token ERROR|" >> print err >> pure prevContainer
-        Right !(mainToken, accessToken) -> pure (setGoogleMainToken mainToken . setGoogleAccessToken accessToken $ prevContainer)
-      
+        Right !(!mainToken, !accessToken) -> pure (setGoogleMainToken mainToken . setGoogleAccessToken accessToken $ prevContainer)
+
+{-# INLINEABLE generateBothToken #-}
 generateBothToken :: TokenSettings -> ExceptT Text IO (GoogleMainToken, GoogleAccessToken)
 generateBothToken settings = (fmap . fmap) access_token $ generateBothQueries settings
 
+{-# INLINEABLE generateBothQueries #-}
 generateBothQueries :: TokenSettings -> ExceptT Text IO (GoogleMainToken, GoogleAccessTokenReturn)
 generateBothQueries settings = do
   mainToken <- ExceptT $ first pack <$> getToken settings
