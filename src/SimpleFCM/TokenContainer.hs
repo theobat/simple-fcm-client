@@ -29,7 +29,7 @@ asBearer (GoogleAccessToken value) = "Bearer " <> encodeUtf8 value
 newtype GoogleMainToken = GoogleMainToken SignedJWT
   deriving newtype (Eq, Show)
 instance ToJSON GoogleMainToken where
-  toJSON (GoogleMainToken value) = toJSON @Text (show value) 
+  toJSON (GoogleMainToken value) = toJSON @Text (show value)
 
 -- | The authorization asked for this token.
 -- see the end paragraph in https://firebase.google.com/docs/cloud-messaging/migrate-v1#use-credentials-to-mint-access-tokens
@@ -79,7 +79,7 @@ defaultGoogleAccessTokenRequest signedJWT = GoogleAccessTokenRequest {
     grant_type = "urn:ietf:params:oauth:grant-type:jwt-bearer",
     assertion = GoogleMainToken signedJWT
   }
-  
+
 getFCMAccessToken :: SignedJWT -> IO (Either Text GoogleAccessTokenReturn)
 getFCMAccessToken signedJWT = do
   let accessTokenInput = defaultGoogleAccessTokenRequest signedJWT
@@ -104,11 +104,15 @@ class GoogleTokenContainer containerT where
   setGoogleAccessToken :: GoogleAccessToken -> containerT -> containerT
   getGoogleAccessToken :: containerT -> GoogleAccessToken
 
-tokenUpdaterThread :: GoogleTokenContainer containerT => Maybe Int -> TokenSettings -> MVar containerT -> IO ()
-tokenUpdaterThread delay settings input = const () <$> (forkIO $ tokenTimer delay settings input)
+tokenUpdaterThread :: GoogleTokenContainer containerT => Maybe Int -> TokenSettings -> MVar containerT -> IO ThreadId
+tokenUpdaterThread delay settings input = forkIO (tokenTimer delay settings input)
 
 {-# INLINABLE tokenTimer #-}
-tokenTimer :: GoogleTokenContainer containerT => Maybe Int -> TokenSettings -> MVar containerT -> IO ()
+tokenTimer :: GoogleTokenContainer containerT =>
+  Maybe Int ->
+  TokenSettings ->
+  MVar containerT ->
+  IO ()
 tokenTimer !delay !settings input = forever (do
   threadDelay (fromMaybe (1000000 * 60 * 55) delay)
   modifyMVar_ input updater
@@ -120,15 +124,15 @@ tokenTimer !delay !settings input = forever (do
       setRes <- runExceptT $ generateBothToken settings
       case setRes of
         Left err -> print "|FCM Token ERROR|" >> print err >> pure prevContainer
-        Right !(!mainToken, !accessToken) -> pure (setGoogleMainToken mainToken . setGoogleAccessToken accessToken $ prevContainer)
+        Right (!mainToken, !accessToken) -> pure (setGoogleMainToken mainToken . setGoogleAccessToken accessToken $ prevContainer)
 
 {-# INLINEABLE generateBothToken #-}
 generateBothToken :: TokenSettings -> ExceptT Text IO (GoogleMainToken, GoogleAccessToken)
-generateBothToken settings = (fmap . fmap) access_token $ generateBothQueries settings
+generateBothToken settings = fmap access_token <$> generateBothQueries settings
 
 {-# INLINEABLE generateBothQueries #-}
 generateBothQueries :: TokenSettings -> ExceptT Text IO (GoogleMainToken, GoogleAccessTokenReturn)
 generateBothQueries settings = do
   mainToken <- ExceptT $ first pack <$> getToken settings
-  accessToken <- ExceptT $ (getFCMAccessToken mainToken)
+  accessToken <- ExceptT $ getFCMAccessToken mainToken
   pure (GoogleMainToken mainToken, accessToken)
