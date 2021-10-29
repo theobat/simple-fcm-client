@@ -17,7 +17,7 @@
 #
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
-resolver: nightly-2020-09-03
+resolver: lts-18.14
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -35,8 +35,8 @@ packages:
 # forks / in-progress versions pinned to a git hash. For example:
 #
 extra-deps:
-  - google-oauth2-jwt-0.3.2@sha256:4fc35d30ffc5f762bc1fc570e7cbb94bde268b40f0f822ba7ed9161fefbd9293,1349
-  - base64-bytestring-1.0.0.3@sha256:6c82d900465345e30ff0eeb9a1374fbd2955c8e5ca6206e03669f04575830f88,2242
+  - google-oauth2-jwt-0.3.3@sha256:ed80b7a72a06ca6d31382aef7210149fb987257e32d9fc3f57cd332fcad3063d,1376
+
 # - acme-missiles-0.3
 # - git: https://github.com/commercialhaskell/stack.git
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
