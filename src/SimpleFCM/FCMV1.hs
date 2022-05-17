@@ -1,10 +1,10 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE GeneralisedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE BangPatterns #-}
 
 -- |
 -- Module      : SimpleFCM.FCMV1
@@ -20,6 +20,14 @@ import Network.HTTP.Types.Status (statusIsSuccessful)
 import qualified Network.Wreq as NW
 import Protolude hiding ((&))
 import SimpleFCM.TokenContainer (GoogleAccessToken, GoogleTokenContainer, TokenSettings (projectId), asBearer, getGoogleAccessToken, projectIdToURLPart)
+import SimpleFCM.Apns
+    ( ApnsOption(headers),
+      ApnsHeaders(apnsPriority),
+      ApnsPriority(..),
+      defaultApnsHeaders,
+      defaultApnsPayloadMessageOption,
+      defaultApnsOption
+      )
 
 -- | A notification is __part__ of an FCM message.
 -- It's what is shown in case a message is received __in the background__ (while the app is
@@ -28,9 +36,9 @@ import SimpleFCM.TokenContainer (GoogleAccessToken, GoogleTokenContainer, TokenS
 -- 'FCMMessage' type.
 data FCMNotification = FCMNotification
   { -- | The title to render on the notification's rendering (if received in the background).
-    title :: Text,
+    title :: !Text,
     -- | The body to render on the notification's rendering (still if received in the background).
-    body :: Text
+    body :: !Text
   }
   deriving (Show, Eq, Generic, ToJSON)
 ----------- Android/Firebase
@@ -45,40 +53,14 @@ defaultAndroidOption = AndroidOption {
   priority = Nothing,
   ttl = Nothing
 }
------------ IOS/APNS
--- | Limited between 0 to 10.
-data ApnsPriority = ApnsPriority Int deriving (Show, Eq, Generic)
-instance ToJSON ApnsPriority where
-  toJSON (ApnsPriority v) = toJSON @Text . show $ v
 
-data ApnsHeaders = ApnsHeaders {
-  apnsPriority :: Maybe ApnsPriority
-} deriving (Show, Eq, Generic)
-instance ToJSON ApnsHeaders where
-  toJSON = DA.genericToJSON apnsJSONOption
-  toEncoding = DA.genericToEncoding apnsJSONOption
-apnsJSONOption = DA.defaultOptions
-    { DA.fieldLabelModifier = replaceApnsHeader,
-      DA.omitNothingFields = True
-    }
-defaultApnsHeaders :: ApnsHeaders
-defaultApnsHeaders = ApnsHeaders {
-  apnsPriority = Nothing
-}
-data ApnsOption = ApnsOption {
-  headers :: Maybe ApnsHeaders
-} deriving (Show, Eq, Generic, ToJSON)
-defaultApnsOption :: ApnsOption
-defaultApnsOption = ApnsOption {
-  headers = Nothing
-}
 
 data FCMMessage = FCMMessage
-  { notification :: Maybe FCMNotification,
-    payload :: Maybe DA.Object,
-    topic :: Maybe Text,
-    android :: Maybe AndroidOption,
-    apns :: Maybe ApnsOption
+  { notification :: !(Maybe FCMNotification),
+    payload :: !(Maybe DA.Object),
+    topic :: !(Maybe Text),
+    android :: !(Maybe AndroidOption),
+    apns :: !(Maybe ApnsOption)
   }
   deriving (Show, Eq, Generic)
 
@@ -155,7 +137,7 @@ payloadMessage topicV notification payloadV =
         _ -> Nothing,
       topic = Just topicV,
       android = Nothing,
-      apns = Nothing
+      apns = Just defaultApnsPayloadMessageOption
     }
 
 -- | Replaces haskell keywords or haskell's incorrect syntax for 
@@ -167,9 +149,6 @@ replaceData :: String -> String
 replaceData "payload" = "data"
 replaceData a = a
 
-replaceApnsHeader :: String -> String
-replaceApnsHeader "apnsPriority" = "apns-priority"
-replaceApnsHeader a = a  
 
 customOptions :: DA.Options
 customOptions =
@@ -196,16 +175,13 @@ sendMessage tokenCont settings fcmMsg = do
   let token = getGoogleAccessToken tokenCont
   sendMessageWithAccessToken token settings fcmMsg
 
-data Msg a = Msg {message :: a} deriving (Eq, Show, Generic, ToJSON)
+newtype Msg a = Msg {message :: a} deriving (Eq, Show, Generic, ToJSON)
 
 sendMessageWithAccessToken :: GoogleAccessToken -> TokenSettings -> FCMMessage -> IO (Either Text NW.Status)
 sendMessageWithAccessToken token settings fcmMsg = do
   let authHeader = asBearer token
-  print authHeader
   let opts = NW.defaults & NW.header "Authorization" .~ [authHeader]
   let msgVal = DA.toJSON $ Msg fcmMsg
-  print msgVal
   resp <- NW.postWith opts (messageURL settings) msgVal
-  -- putStrLn ("Resp:" <> show resp::Text)
   let respStatus = resp ^. NW.responseStatus
-  pure $ (if statusIsSuccessful respStatus then Right respStatus else Left (show resp))
+  pure (if statusIsSuccessful respStatus then Right respStatus else Left (show resp))

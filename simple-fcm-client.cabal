@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1331f1a87f0b87e5e690f089dd2c522b53e88771b8f5bec73265d40e3cd4816c
+-- hash: 104ac60af389d58176faa680c9c2d77bf9100bdbc07678d9850b0d64ed991ee8
 
 name:           simple-fcm-client
 version:        0.1.0.0
@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       SimpleFCM
+      SimpleFCM.Apns
       SimpleFCM.FCMV1
       SimpleFCM.TokenContainer
   other-modules:
