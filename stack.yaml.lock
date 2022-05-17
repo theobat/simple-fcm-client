@@ -5,22 +5,33 @@
 
 packages:
 - completed:
-    hackage: google-oauth2-jwt-0.3.2@sha256:4fc35d30ffc5f762bc1fc570e7cbb94bde268b40f0f822ba7ed9161fefbd9293,1349
+    hackage: google-oauth2-jwt-0.3.3@sha256:ed80b7a72a06ca6d31382aef7210149fb987257e32d9fc3f57cd332fcad3063d,1376
     pantry-tree:
       size: 282
-      sha256: 88e9f2c7da298d850f1cbfd23148b5c856bf7e22b73f930b9270580c8f7ae512
+      sha256: 12f6134bf38ade0ab94c4686b92ff68921e7e9d457073140e6c945d5efa1d542
   original:
-    hackage: google-oauth2-jwt-0.3.2@sha256:4fc35d30ffc5f762bc1fc570e7cbb94bde268b40f0f822ba7ed9161fefbd9293,1349
+    hackage: google-oauth2-jwt-0.3.3@sha256:ed80b7a72a06ca6d31382aef7210149fb987257e32d9fc3f57cd332fcad3063d,1376
 - completed:
-    hackage: base64-bytestring-1.0.0.3@sha256:6c82d900465345e30ff0eeb9a1374fbd2955c8e5ca6206e03669f04575830f88,2242
+    hackage: base64-bytestring-1.2.0.0@sha256:61c7ee56af035718e37eb0abb95ef68654c663743b22a43ed2f80c9cc21abf05,2437
     pantry-tree:
-      size: 848
-      sha256: 580b3808ee3ee06468d56808639a6b46615ff385c64d977423817434d17a9888
+      size: 850
+      sha256: 98de6b3e97b1cee08d99f70e92603a517549ece8a35bb55db4506487352da118
   original:
-    hackage: base64-bytestring-1.0.0.3@sha256:6c82d900465345e30ff0eeb9a1374fbd2955c8e5ca6206e03669f04575830f88,2242
+    hackage: base64-bytestring-1.2.0.0@sha256:61c7ee56af035718e37eb0abb95ef68654c663743b22a43ed2f80c9cc21abf05,2437
+- completed:
+    name: protolude
+    version: 0.3.1
+    git: https://github.com/protolude/protolude.git
+    pantry-tree:
+      size: 3146
+      sha256: 685ed0191298da9540e772ffa746eb078d4f4a77ed8012a9933d3c79644b1054
+    commit: 3e249724fd0ead27370c8c297b1ecd38f92cbd5b
+  original:
+    git: https://github.com/protolude/protolude.git
+    commit: 3e249724fd0ead27370c8c297b1ecd38f92cbd5b
 snapshots:
 - completed:
-    size: 528636
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2020/9/3.yaml
-    sha256: 9dac40ef83b087f8f5c4b32a3400b54f6fc058fd7648e46bbfcb60765b135646
-  original: nightly-2020-09-03
+    size: 618876
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/19/6.yaml
+    sha256: fb634b19f31da06684bb07ce02a20c75a3162138f279b388905b03ebd57bb50f
+  original: lts-19.6
