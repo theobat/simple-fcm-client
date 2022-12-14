@@ -2,14 +2,12 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralisedNewtypeDeriving #-}
 
 module SimpleFCM.TokenContainer where
 
-import Protolude
 import Data.String (String)
 import Network.Google.OAuth2.JWT (SignedJWT, fromPEMString, getSignedJWT)
 import qualified Network.Wreq as NW
@@ -17,6 +15,14 @@ import Data.Aeson (decode', FromJSON, ToJSON(toJSON))
 import Control.Lens ( (&), (^.), (.~) )
 import Data.Text (unpack, pack)
 import Data.String (String, IsString(fromString))
+import GHC.Generics (Generic)
+import Data.Text (Text, pack)
+import Data.Text.Encoding (encodeUtf8)
+import Data.ByteString (ByteString)
+import Control.Concurrent
+import Control.Monad.Except (ExceptT(ExceptT), forever, runExceptT)
+import Data.Bifunctor (first)
+import Data.Maybe (fromMaybe)
 
 type Email = Text
 
@@ -29,7 +35,7 @@ asBearer (GoogleAccessToken value) = "Bearer " <> encodeUtf8 value
 newtype GoogleMainToken = GoogleMainToken SignedJWT
   deriving newtype (Eq, Show)
 instance ToJSON GoogleMainToken where
-  toJSON (GoogleMainToken value) = toJSON @Text (show value)
+  toJSON (GoogleMainToken value) = toJSON @Text (pack $ show value)
 
 -- | The authorization asked for this token.
 -- see the end paragraph in https://firebase.google.com/docs/cloud-messaging/migrate-v1#use-credentials-to-mint-access-tokens
@@ -89,7 +95,9 @@ getFCMAccessToken signedJWT = do
   let respStatus = resp ^. NW.responseStatus
   let respBody = resp ^. NW.responseBody
   let bodyRes = decode' @GoogleAccessTokenReturn respBody
-  pure $ maybeToRight (show resp) bodyRes
+  pure $ case bodyRes of
+    Nothing -> Left $ pack $ show resp
+    Just v -> Right v
 
 data GoogleAccessTokenReturn = GoogleAccessTokenReturn {
   access_token :: GoogleAccessToken,
@@ -114,7 +122,8 @@ tokenTimer :: GoogleTokenContainer containerT =>
   MVar containerT ->
   IO ()
 tokenTimer !delay !settings input = forever (do
-  threadDelay (fromMaybe (1000000 * 60 * 55) delay)
+  let defaultDelay = 1000000 * 60 * 55
+  threadDelay (fromMaybe defaultDelay delay)
   modifyMVar_ input updater
   print "modified Google Tokens"
   )

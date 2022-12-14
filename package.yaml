@@ -21,7 +21,6 @@ description:         Please see the README on GitHub at <https://github.com/gith
 
 dependencies:
 - base >= 4.7 && < 5
-- protolude
 - bytestring
 - wreq
 - lens
@@ -31,6 +30,7 @@ dependencies:
 - http-types
 - unordered-containers
 - stm
+- mtl
 
 library:
   source-dirs: src

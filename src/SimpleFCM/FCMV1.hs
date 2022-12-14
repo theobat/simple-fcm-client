@@ -2,7 +2,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE BangPatterns #-}
 
@@ -18,7 +17,6 @@ import qualified Data.Aeson as DA
 import Data.String (String)
 import Network.HTTP.Types.Status (statusIsSuccessful)
 import qualified Network.Wreq as NW
-import Protolude hiding ((&))
 import SimpleFCM.TokenContainer (GoogleAccessToken, GoogleTokenContainer, TokenSettings (projectId), asBearer, getGoogleAccessToken, projectIdToURLPart)
 import SimpleFCM.Apns
     ( ApnsOption(headers),
@@ -28,6 +26,8 @@ import SimpleFCM.Apns
       defaultApnsPayloadMessageOption,
       defaultApnsOption
       )
+import GHC.Generics (Generic)
+import Data.Text (Text, pack)
 
 -- | A notification is __part__ of an FCM message.
 -- It's what is shown in case a message is received __in the background__ (while the app is
@@ -184,4 +184,4 @@ sendMessageWithAccessToken token settings fcmMsg = do
   let msgVal = DA.toJSON $ Msg fcmMsg
   resp <- NW.postWith opts (messageURL settings) msgVal
   let respStatus = resp ^. NW.responseStatus
-  pure (if statusIsSuccessful respStatus then Right respStatus else Left (show resp))
+  pure (if statusIsSuccessful respStatus then Right respStatus else Left (pack $ show resp))

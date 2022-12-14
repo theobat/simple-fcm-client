@@ -5,15 +5,19 @@
 
 packages:
 - completed:
-    hackage: google-oauth2-jwt-0.3.3@sha256:ed80b7a72a06ca6d31382aef7210149fb987257e32d9fc3f57cd332fcad3063d,1376
+    name: google-oauth2-jwt
+    version: 0.3.3
+    git: https://github.com/theobat/google-oauth2-jwt.git
     pantry-tree:
-      size: 282
-      sha256: 12f6134bf38ade0ab94c4686b92ff68921e7e9d457073140e6c945d5efa1d542
+      size: 456
+      sha256: a7959df2247ae3d8bc9a56351f0e75ba9c88c971940491215379527d187e03b3
+    commit: e81f9f0e1c07d803a990a5b0ad90dfd9f94abc84
   original:
-    hackage: google-oauth2-jwt-0.3.3@sha256:ed80b7a72a06ca6d31382aef7210149fb987257e32d9fc3f57cd332fcad3063d,1376
+    git: https://github.com/theobat/google-oauth2-jwt.git
+    commit: e81f9f0e1c07d803a990a5b0ad90dfd9f94abc84
 snapshots:
 - completed:
-    size: 586069
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/14.yaml
-    sha256: 87842ecbaa8ca9cee59a7e6be52369dbed82ed075cb4e0d152614a627e8fd488
-  original: lts-18.14
+    size: 618876
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/19/6.yaml
+    sha256: fb634b19f31da06684bb07ce02a20c75a3162138f279b388905b03ebd57bb50f
+  original: lts-19.6

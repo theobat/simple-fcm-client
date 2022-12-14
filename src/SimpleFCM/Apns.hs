@@ -2,7 +2,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE BangPatterns #-}
 
@@ -24,13 +23,14 @@ module SimpleFCM.Apns (
 import Data.Aeson (ToJSON (toJSON))
 import qualified Data.Aeson as DA
 import Data.String (String)
-import Protolude hiding ((&))
+import GHC.Generics (Generic)
+import Data.Text (Text, pack)
 
 ----------- IOS/APNS
 -- | Limited between 0 to 10.
 newtype ApnsPriority = ApnsPriority Int deriving (Show, Eq, Generic)
 instance ToJSON ApnsPriority where
-  toJSON (ApnsPriority v) = toJSON @Text . show $ v
+  toJSON (ApnsPriority v) = toJSON @Text . pack $ show $ v
 
 newtype ApnsHeaders = ApnsHeaders {
   apnsPriority :: Maybe ApnsPriority

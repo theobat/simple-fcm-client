@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 104ac60af389d58176faa680c9c2d77bf9100bdbc07678d9850b0d64ed991ee8
+-- hash: 3983d999f6c9229062afbffb9cdd033d9baf5d2816880dd94c4b65f8d4929b8b
 
 name:           simple-fcm-client
 version:        0.1.0.0
@@ -42,7 +42,7 @@ library
     , google-oauth2-jwt
     , http-types
     , lens
-    , protolude
+    , mtl
     , stm
     , text
     , unordered-containers
@@ -64,7 +64,7 @@ test-suite simple-fcm-client-test
     , google-oauth2-jwt
     , http-types
     , lens
-    , protolude
+    , mtl
     , simple-fcm-client
     , stm
     , text
